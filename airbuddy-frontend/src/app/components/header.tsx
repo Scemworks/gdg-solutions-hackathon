@@ -13,6 +13,11 @@ export default function Header() {
         setIsMenuOpen(!isMenuOpen);
     };
 
+    // Close menu when pathname changes (navigation occurs)
+    useEffect(() => {
+        setIsMenuOpen(false);
+    }, [pathname]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
@@ -60,7 +65,7 @@ export default function Header() {
                         <Link href="/safety-tips" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/safety-tips' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Tips</Link>
                         <Link href="/forecast" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/forecast' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Forecast</Link>
                         <Link href="/community" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/community' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Community</Link>
-                        <Link href="/login" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-200 dark:bg-blue-800 px-3 py-1 rounded ${pathname === '/login' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Login</Link>
+                        <Link href="/login" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-200 dark:bg-blue-800 px-3 py-1 rounded ${pathname === '/login' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>{pathname === '/signup' ? 'Signup' : 'Login'}</Link>
                     </nav>
                 </div>
                 
@@ -97,7 +102,7 @@ export default function Header() {
                             <Link href="/safety-tips" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/safety-tips' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Tips</Link>
                             <Link href="/forecast" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/forecast' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Forecast</Link>
                             <Link href="/community" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/community' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Community</Link>
-                            <Link href="/login" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-200 dark:bg-blue-800 px-4 py-2 rounded text-center my-2 font-medium ${pathname === '/login' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Login</Link>
+                            <Link href="/login" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-200 dark:bg-blue-800 px-4 py-2 rounded text-center my-2 font-medium ${pathname === '/login' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>{pathname === '/signup' ? 'Signup' : 'Login'}</Link>
                         </nav>
                     </div>
                 </div>
