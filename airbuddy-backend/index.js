@@ -16,7 +16,7 @@ app.get('/', (_, res) => {
   res.send('Server is running');
 });
 
-// AQI API endpoint with pollutant details
+// AQI API endpoint using WAQI API
 app.get('/api/aqi', async (req, res) => {
   try {
     const { lat, lon } = req.query;
@@ -25,44 +25,57 @@ app.get('/api/aqi', async (req, res) => {
       return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
     
-    // Get API key from .env file
+    // Get WAQI API key from .env file
     const API_KEY = process.env.AQI_API_KEY;
     
     if (!API_KEY) {
       return res.status(500).json({ error: 'API key not configured' });
     }
     
-    // Request data from the AirVisual API
-    const response = await axios.get(`https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${API_KEY}`);
+    // Request data from the WAQI API
+    const response = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${API_KEY}`);
     
-    const currentData = response.data.data.current;
-    const pollution = currentData.pollution;
-    const weather = currentData.weather;
+    // Check if the response was successful
+    if (response.data.status !== 'ok') {
+      return res.status(400).json({ error: 'Unable to fetch AQI data' });
+    }
     
-    // Return AQI data along with detailed pollutant information
+    const data = response.data.data;
+    
+    // Extract pollutant information
+    const components = {
+      co: data.iaqi.co?.v || 0,
+      no: data.iaqi.no?.v || 0,
+      no2: data.iaqi.no2?.v || 0,
+      o3: data.iaqi.o3?.v || 0,
+      so2: data.iaqi.so2?.v || 0,
+      pm2_5: data.iaqi.pm25?.v || 0,
+      pm10: data.iaqi.pm10?.v || 0,
+      nh3: data.iaqi.nh3?.v || 0
+    };
+    
+    // Determine the main pollutant
+    const mainPollutant = data.dominentpol || 'pm25';
+    
+    // Return AQI data with detailed pollutant information
     const aqiData = {
-      city: response.data.data.city,
-      state: response.data.data.state, // optional: if available
-      country: response.data.data.country,
-      location: response.data.data.location, // coordinates and type
-      pollution: {
-        aqius: pollution.aqius,        // US AQI value
-        mainus: pollution.mainus,        // Main pollutant for US standard (e.g., "p2" for PM2.5)
-        aqicn: pollution.aqicn,          // Chinese AQI value
-        maincn: pollution.maincn,        // Main pollutant for Chinese standard
-        timestamp: pollution.ts          // Timestamp of the data
+      location: {
+        lat: parseFloat(lat),
+        lon: parseFloat(lon)
       },
-      weather: {
-        temperature: weather.tp,         // Temperature in Celsius
-        pressure: weather.pr,            // Atmospheric pressure in hPa
-        humidity: weather.hu,            // Humidity percentage
-        wind_speed: weather.ws           // Wind speed (m/s or km/h, depending on API documentation)
-      }
+      pollution: {
+        aqius: data.aqi,
+        mainus: mainPollutant,
+        aqicn: data.aqi,
+        timestamp: data.time?.iso || new Date().toISOString()
+      },
+      weather: {},
+      components: components
     };
     
     res.json(aqiData);
   } catch (error) {
-    console.error('AQI API Error:', error);
+    console.error('WAQI API Error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to fetch AQI data' });
   }
 });
