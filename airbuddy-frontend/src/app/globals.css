@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+:root {
+    --footer-height: 60px; /* Adjust this value based on your footer's height */
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+}
+
+main {
+    flex: 1 0 auto;
+    padding-bottom: var(--footer-height);
+}
+
+footer {
+    height: var(--footer-height);
+    flex-shrink: 0;
+}
