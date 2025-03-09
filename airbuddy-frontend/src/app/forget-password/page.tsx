@@ -4,8 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-
-
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +47,7 @@ export default function ForgotPassword() {
                         <h1 className="text-4xl font-bold text-blue-800 dark:text-blue-300">AirBuddy</h1>
                     </Link>
                     <p className="text-gray-600 dark:text-gray-300 mt-2">Your personal air quality companion</p>
+                    </div>
                 </div>
                 
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
@@ -68,32 +67,30 @@ export default function ForgotPassword() {
                             <p className="text-gray-600 dark:text-gray-400 mb-4">
                                 Please check your inbox and follow the instructions to reset your password.
                             </p>
-                            <Link 
-                                href="/login" 
+                            <button 
+                                onClick={() => router.push('/login')}
                                 className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                             >
                                 Return to login
-                            </Link>
+                            </button>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit}>
-                            <div className="mb-6">
-                                <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                                    Email Address
-                                </label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                    placeholder="your@email.com"
-                                    required
-                                />
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                    We'll send a password reset link to this email address.
-                                </p>
-                            </div>
+                            <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                placeholder="your@email.com"
+                                required
+                            />
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                                We&apos;ll send a password reset link to this email address.
+                            </p>
                             
                             <button
                                 type="submit"
@@ -108,9 +105,9 @@ export default function ForgotPassword() {
                     <div className="mt-6 text-center">
                         <p className="text-gray-600 dark:text-gray-400">
                             Remembered your password?{' '}
-                            <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                            <button onClick={() => router.push('/login')} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                                 Log in
-                            </Link>
+                            </button>
                         </p>
                     </div>
                 </div>
