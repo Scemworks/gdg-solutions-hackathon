@@ -4,18 +4,16 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function ForgotPassword() {
+
+export default function ForgetPassword() {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
-        setSuccess(false);
 
         try {
             // Here you would implement actual password reset logic
@@ -26,15 +24,15 @@ export default function ForgotPassword() {
             //   body: JSON.stringify({ email }),
             // });
             
-            // Simulate password reset email sent
+            // Simulate API call
             setTimeout(() => {
                 setIsLoading(false);
-                setSuccess(true);
+                setIsSubmitted(true);    
+                router.push('/login');
             }, 1000);
             
         } catch (err) {
             setIsLoading(false);
-            setError('Failed to send reset email. Please try again.');
             console.error('Password reset error:', err);
         }
     };
@@ -47,69 +45,58 @@ export default function ForgotPassword() {
                         <h1 className="text-4xl font-bold text-blue-800 dark:text-blue-300">AirBuddy</h1>
                     </Link>
                     <p className="text-gray-600 dark:text-gray-300 mt-2">Your personal air quality companion</p>
-                    </div>
                 </div>
                 
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
                     <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-300 mb-6 text-center">Reset Password</h2>
                     
-                    {error && (
-                        <div className="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-4">
-                            {error}
-                        </div>
-                    )}
-
-                    {success ? (
+                    {isSubmitted ? (
                         <div className="text-center">
                             <div className="bg-green-100 dark:bg-green-900 border border-green-400 text-green-700 dark:text-green-200 px-4 py-3 rounded-lg mb-4">
-                                Reset link has been sent to your email address.
+                                Password reset instructions have been sent to your email.
                             </div>
-                            <p className="text-gray-600 dark:text-gray-400 mb-4">
-                                Please check your inbox and follow the instructions to reset your password.
-                            </p>
-                            <button 
-                                onClick={() => router.push('/login')}
-                                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                            >
+                            <Link href="/login" className="inline-block mt-4 text-blue-600 dark:text-blue-400 hover:underline">
                                 Return to login
-                            </button>
+                            </Link>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit}>
-                            <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-                                Email Address
-                            </label>
-                            <input
-                                type="email"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                placeholder="your@email.com"
-                                required
-                            />
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                We&apos;ll send a password reset link to this email address.
+                        <>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                Enter your email address and we&apos;ll send you instructions to reset your password.
                             </p>
                             
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className={`w-full bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium py-2 px-6 rounded-lg transition-colors ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                            >
-                                {isLoading ? 'Sending...' : 'Send Reset Link'}
-                            </button>
-                        </form>
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-6">
+                                    <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        placeholder="your@email.com"
+                                        required
+                                    />
+                                </div>
+                                
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className={`w-full bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium py-2 px-6 rounded-lg transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    {isLoading ? 'Sending...' : 'Send Reset Instructions'}
+                                </button>
+                            </form>
+                            
+                            <div className="mt-6 text-center">
+                                <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">
+                                    Back to login
+                                </Link>
+                            </div>
+                        </>
                     )}
-                    
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Remembered your password?{' '}
-                            <button onClick={() => router.push('/login')} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                                Log in
-                            </button>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
