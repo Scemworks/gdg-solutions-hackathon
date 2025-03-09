@@ -22,7 +22,7 @@ interface AQIData {
     city: string;
     state?: string;
     country: string;
-    location?: any;
+    location?: Record<string, unknown>;
     pollution: PollutionData;
     weather: WeatherData;
 }
