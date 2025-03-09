@@ -7,15 +7,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const port = 5000;
-
-app.get('/', (_, res) => {
-  res.send('Server is running');
-});
 
 // Add middleware to parse JSON requests and enable CORS
 app.use(express.json());
 app.use(cors());
+
+app.get('/', (_, res) => {
+  res.send('Server is running');
+});
 
 // AQI API endpoint with pollutant details
 app.get('/api/aqi', async (req, res) => {
@@ -124,5 +123,5 @@ app.get('/api/env-check', (_, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// Export the Express API
+export default app;
