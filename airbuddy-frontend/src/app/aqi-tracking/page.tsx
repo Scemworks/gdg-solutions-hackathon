@@ -119,7 +119,7 @@ export default function AQITrackingPage() {
     };
 
     // Function to fetch data based on location name
-    const fetchDataByLocationName = async (locationName: string) => {
+    const fetchDataByLocationName = React.useCallback(async (locationName: string) => {
         setIsLoading(true);
         setErrorMessage("");
 
@@ -150,7 +150,7 @@ export default function AQITrackingPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     // Handle location search
     const handleLocationSearch = (e: React.FormEvent) => {
@@ -192,7 +192,7 @@ export default function AQITrackingPage() {
                                     } else {
                                         setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                                     }
-                                } catch (error) {
+                                } catch (_) {
                                     setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                                 }
                                 
@@ -222,7 +222,7 @@ export default function AQITrackingPage() {
         };
 
         getCurrentLocationData();
-    }, []);
+    }, [fetchDataByLocationName]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-blue-950">
