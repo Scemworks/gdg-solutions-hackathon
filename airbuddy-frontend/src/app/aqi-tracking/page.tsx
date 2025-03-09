@@ -192,7 +192,7 @@ export default function AQITrackingPage() {
                                     } else {
                                         setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                                     }
-                                } catch (_) {
+                                } catch {
                                     setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                                 }
                                 
