@@ -190,6 +190,52 @@ export default function SafetyTips() {
                     severity: 'all'
                 }
             ]
+        },
+        {
+            id: 'conditions',
+            title: 'Health Conditions',
+            icon: (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            ),
+            tips: [
+                {
+                    title: 'Asthma Management',
+                    description: 'Keep rescue inhalers always accessible. Consider increasing controller medication during high pollution days after consulting your doctor.',
+                    severity: 'high'
+                },
+                {
+                    title: 'COPD Precautions',
+                    description: 'Follow your action plan created with your doctor. Consider using supplemental oxygen as prescribed when pollution levels are elevated.',
+                    severity: 'high'
+                },
+                {
+                    title: 'Heart Disease',
+                    description: 'People with cardiovascular conditions should limit outdoor exposure when AQI exceeds 100, as air pollution can increase risk of heart attacks and stroke.',
+                    severity: 'medium'
+                },
+                {
+                    title: 'Pregnancy',
+                    description: 'Pregnant women should take extra precautions as pollution exposure may affect fetal development. Limit outdoor activities when AQI is above 100.',
+                    severity: 'medium'
+                },
+                {
+                    title: 'Children with Respiratory Issues',
+                    description: 'Children with asthma or other respiratory conditions should avoid outdoor play when AQI is unhealthy. Ensure they take prescribed medications.',
+                    severity: 'high'
+                },
+                {
+                    title: 'Elderly with Multiple Conditions',
+                    description: 'Older adults with multiple health issues should stay indoors with air purification during pollution events and maintain good hydration.',
+                    severity: 'high'
+                },
+                {
+                    title: 'Allergies and Pollution',
+                    description: 'People with allergies may experience intensified symptoms during high pollution. Consider using antihistamines and nasal sprays as directed by your doctor.',
+                    severity: 'medium'
+                }
+            ]
         }
     ];
 
