@@ -51,6 +51,16 @@ export default function CommunityPage() {
             likes: 15,
             comments: 7,
             aqi: 25
+        },
+        {
+            id: '4',
+            author: 'Suresh Kumar',
+            location: 'Kozhikode, Kerala',
+            date: '3 hours ago',
+            content: 'Industrial area showing concerning pollution levels today. AQI measured at 78. Wearing masks recommended if you\'re in the vicinity.',
+            likes: 14,
+            comments: 9,
+            aqi: 78
         }
     ]);
 
@@ -224,4 +234,4 @@ export default function CommunityPage() {
             </div>
         </div>
     );
-}</svg></button></svg></div>
+}
