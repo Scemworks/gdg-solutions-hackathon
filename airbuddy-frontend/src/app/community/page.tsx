@@ -11,12 +11,15 @@ interface CommunityPost {
     content: string;
     likes: number;
     comments: number;
+    aqi?: number; // Optional AQI field
 }
 
 export default function CommunityPage() {
     const router = useRouter();
     const [newPost, setNewPost] = useState('');
     const [location, setLocation] = useState('');
+    const [aqi, setAqi] = useState<string>('');
+    const [includeAqi, setIncludeAqi] = useState(false);
 
     // Mock community posts data
     const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([
@@ -27,7 +30,8 @@ export default function CommunityPage() {
             date: '2 hours ago',
             content: 'Air quality seems much better today after yesterday\'s monsoon showers. AQI around 45 in the Fort Kochi area.',
             likes: 12,
-            comments: 3
+            comments: 3,
+            aqi: 45
         },
         {
             id: '2',
@@ -45,7 +49,8 @@ export default function CommunityPage() {
             date: '1 day ago',
             content: 'The air quality in the hills is excellent today! Perfect for outdoor activities. AQI reading of just 25.',
             likes: 15,
-            comments: 7
+            comments: 7,
+            aqi: 25
         }
     ]);
 
@@ -60,12 +65,15 @@ export default function CommunityPage() {
             date: 'Just now',
             content: newPost,
             likes: 0,
-            comments: 0
+            comments: 0,
+            ...(includeAqi && aqi ? { aqi: parseInt(aqi) } : {})
         };
         
         setCommunityPosts([newCommunityPost, ...communityPosts]);
         setNewPost('');
         setLocation('');
+        setAqi('');
+        setIncludeAqi(false);
     };
 
     const handleLikePost = (postId: string) => {
@@ -74,6 +82,15 @@ export default function CommunityPage() {
                 post.id === postId ? { ...post, likes: post.likes + 1 } : post
             )
         );
+    };
+
+    const getAqiColor = (aqi?: number) => {
+        if (!aqi) return "";
+        if (aqi <= 50) return "text-green-600";
+        if (aqi <= 100) return "text-yellow-600";
+        if (aqi <= 150) return "text-orange-600";
+        if (aqi <= 200) return "text-red-600";
+        return "text-purple-600";
     };
 
     return (
@@ -124,6 +141,36 @@ export default function CommunityPage() {
                                 required
                             ></textarea>
                         </div>
+                        <div className="mb-4">
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="includeAqi"
+                                    checked={includeAqi}
+                                    onChange={(e) => setIncludeAqi(e.target.checked)}
+                                    className="mr-2"
+                                />
+                                <label htmlFor="includeAqi" className="text-gray-700 dark:text-gray-300">
+                                    I know the current AQI
+                                </label>
+                            </div>
+                            
+                            {includeAqi && (
+                                <div className="mt-2">
+                                    <label htmlFor="aqi" className="block text-gray-700 dark:text-gray-300 mb-1">AQI Value</label>
+                                    <input
+                                        type="number"
+                                        id="aqi"
+                                        value={aqi}
+                                        onChange={(e) => setAqi(e.target.value)}
+                                        placeholder="Enter AQI value (0-500)"
+                                        min="0"
+                                        max="500"
+                                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                                    />
+                                </div>
+                            )}
+                        </div>
                         <button
                             type="submit"
                             className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium py-2 px-6 rounded-lg transition-colors"
@@ -147,6 +194,11 @@ export default function CommunityPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 {post.location}
+                                {post.aqi !== undefined && (
+                                    <span className={`ml-4 font-semibold ${getAqiColor(post.aqi)}`}>
+                                        AQI: {post.aqi}
+                                    </span>
+                                )}
                             </div>
                             <p className="text-gray-700 dark:text-gray-300 mb-4">{post.content}</p>
                             <div className="flex space-x-4 text-sm">
@@ -172,4 +224,4 @@ export default function CommunityPage() {
             </div>
         </div>
     );
-}
+}</svg></button></svg></div>
