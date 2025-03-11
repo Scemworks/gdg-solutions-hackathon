@@ -11,13 +11,6 @@ interface PollutionData {
     timestamp: string;
 }
 
-interface WeatherData {
-    temperature?: number;
-    pressure?: number;
-    humidity?: number;
-    wind_speed?: number;
-}
-
 interface PollutantComponents {
     co: number;
     no: number;
@@ -38,14 +31,7 @@ interface AQIData {
         lon: number;
     };
     pollution: PollutionData;
-    weather: WeatherData;
     components: PollutantComponents;
-}
-
-interface HistoricalEntry {
-    timestamp: string;
-    aqi: number;
-    mainPollutant: string;
 }
 
 export default function AQITrackingPage() {
@@ -54,7 +40,6 @@ export default function AQITrackingPage() {
     const [location, setLocation] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const [historicalData, setHistoricalData] = useState<HistoricalEntry[]>([]);
 
     // Function to determine health advice based on AQI level
     const getHealthAdvice = (aqi: number) => {
@@ -103,21 +88,6 @@ export default function AQITrackingPage() {
         return pollutants[code] || code;
     };
 
-    // Add historical entry
-    const addHistoricalEntry = (data: AQIData) => {
-        const newEntry: HistoricalEntry = {
-            timestamp: data.pollution.timestamp,
-            aqi: data.pollution.aqius,
-            mainPollutant: data.pollution.mainus
-        };
-
-        setHistoricalData(prev => {
-            // Keep only the last 24 entries
-            const updatedHistory = [newEntry, ...prev].slice(0, 24);
-            return updatedHistory;
-        });
-    };
-
     // Function to fetch data based on location name
     const fetchDataByLocationName = React.useCallback(async (locationName: string) => {
         setIsLoading(true);
@@ -143,7 +113,6 @@ export default function AQITrackingPage() {
 
             setAqiData(aqiResponseData);
             setLocation(display_name);
-            addHistoricalEntry(aqiResponseData);
         } catch (error) {
             console.error("Error fetching data:", error);
             setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
@@ -195,8 +164,6 @@ export default function AQITrackingPage() {
                                 } catch {
                                     setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                                 }
-                                
-                                addHistoricalEntry(aqiResponseData);
                             } catch (error) {
                                 console.error("Error fetching AQI data:", error);
                                 setErrorMessage(error instanceof Error ? error.message : "Failed to fetch AQI data");
@@ -382,88 +349,6 @@ export default function AQITrackingPage() {
                                         </div>
                                     </>
                                 )}
-                            </div>
-
-                            {/* Weather section - only display if the weather data exists */}
-                            {aqiData.weather && (
-                                Object.keys(aqiData.weather).length > 0 ? (
-                                    <>
-                                        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Weather Conditions</h2>
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                            {aqiData.weather.temperature !== undefined && (
-                                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                                    <h3 className="text-sm uppercase font-medium text-gray-600 dark:text-gray-400 mb-1">Temperature</h3>
-                                                    <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                                                        {aqiData.weather.temperature}°C
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {aqiData.weather.humidity !== undefined && (
-                                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                                    <h3 className="text-sm uppercase font-medium text-gray-600 dark:text-gray-400 mb-1">Humidity</h3>
-                                                    <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                                                        {aqiData.weather.humidity}%
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {aqiData.weather.wind_speed !== undefined && (
-                                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                                    <h3 className="text-sm uppercase font-medium text-gray-600 dark:text-gray-400 mb-1">Wind Speed</h3>
-                                                    <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                                                        {aqiData.weather.wind_speed} m/s
-                                                    </p>
-                                                </div>
-                                            )}
-                                            {aqiData.weather.pressure !== undefined && (
-                                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                                                    <h3 className="text-sm uppercase font-medium text-gray-600 dark:text-gray-400 mb-1">Pressure</h3>
-                                                    <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                                                        {aqiData.weather.pressure} hPa
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </>
-                                ) : null
-                            )}
-                        </div>
-                    )}
-                    
-                    {/* Historical Data Section */}
-                    {!isLoading && historicalData.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-                            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Historical AQI Data</h2>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full bg-white dark:bg-gray-800">
-                                    <thead>
-                                        <tr className="bg-gray-100 dark:bg-gray-700">
-                                            <th className="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Time</th>
-                                            <th className="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-300">AQI</th>
-                                            <th className="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Category</th>
-                                            <th className="py-2 px-4 text-left text-sm font-medium text-gray-600 dark:text-gray-300">Main Pollutant</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {historicalData.map((entry, index) => (
-                                            <tr key={index} className={index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}>
-                                                <td className="py-2 px-4 text-sm text-gray-700 dark:text-gray-300">
-                                                    {new Date(entry.timestamp).toLocaleString()}
-                                                </td>
-                                                <td className="py-2 px-4">
-                                                    <span className={`px-2 py-1 text-xs text-white rounded-full ${getAQICategoryColorClass(entry.aqi)}`}>
-                                                        {entry.aqi}
-                                                    </span>
-                                                </td>
-                                                <td className="py-2 px-4 text-sm text-gray-700 dark:text-gray-300">
-                                                    {getAQICategory(entry.aqi)}
-                                                </td>
-                                                <td className="py-2 px-4 text-sm text-gray-700 dark:text-gray-300">
-                                                    {getPollutantName(entry.mainPollutant)}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     )}
