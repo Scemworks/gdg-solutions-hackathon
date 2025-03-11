@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Line } from 'react-chartjs-2';
 import {
-
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
@@ -28,13 +27,24 @@ ChartJS.register(
 
 interface ForecastDay {
     day: string;
+    aqi: number;
+    mainPollutant: string;
     components: {
-        pm2_5?: number;
-        pm10?: number;
-        o3?: number;
-        no2?: number;
-        so2?: number;
-        co?: number;
+        pm2_5_avg?: number;
+        pm2_5_min?: number;
+        pm2_5_max?: number;
+        pm10_avg?: number;
+        pm10_min?: number;
+        pm10_max?: number;
+        o3_avg?: number;
+        o3_min?: number;
+        o3_max?: number;
+        no2_avg?: number;
+        no2_min?: number;
+        no2_max?: number;
+        so2_avg?: number;
+        so2_min?: number;
+        so2_max?: number;
         [key: string]: number | undefined;
     };
 }
@@ -43,22 +53,22 @@ interface AQIForecastData {
     location: {
         lat: number;
         lon: number;
+        name: string;
     };
-    pollution: {
-        aqius: number;
-        mainus: string;
-        aqicn: number;
+    current: {
+        aqi: number;
+        mainPollutant: string;
         timestamp: string;
-    };
-    components: {
-        co: number;
-        no: number;
-        no2: number;
-        o3: number;
-        so2: number;
-        pm2_5: number;
-        pm10: number;
-        nh3: number;
+        components: {
+            co: number;
+            no: number;
+            no2: number;
+            o3: number;
+            so2: number;
+            pm2_5: number;
+            pm10: number;
+            nh3: number;
+        };
     };
     forecast: ForecastDay[];
 }
@@ -223,9 +233,16 @@ export default function ForecastPage() {
         }
 
         const labels = forecastData.forecast.map(day => formatDate(day.day));
-        const datapoints = forecastData.forecast.map(day => 
-            day.components[selectedPollutant] || 0
-        );
+        
+        // Select appropriate value based on the pollutant and availability
+        const datapoints = forecastData.forecast.map(day => {
+            const avgKey = `${selectedPollutant}_avg`;
+            const maxKey = `${selectedPollutant}_max`;
+            const minKey = `${selectedPollutant}_min`;
+            
+            // Prefer average, fallback to max or min
+            return day.components[avgKey] ?? day.components[maxKey] ?? day.components[minKey] ?? 0;
+        });
 
         return {
             labels,
@@ -273,7 +290,9 @@ export default function ForecastPage() {
                         <div className="flex items-center justify-between mb-2">
                             <h2 className="text-lg font-medium text-gray-700 dark:text-gray-300">Your Location</h2>
                         </div>
-                        <p className="text-gray-800 dark:text-gray-200 font-semibold mb-3">{location}</p>
+                        <p className="text-gray-800 dark:text-gray-200 font-semibold mb-3">
+                            {location || (forecastData?.location?.name ? forecastData.location.name : "Unknown location")}
+                        </p>
 
                         <form onSubmit={handleLocationSearch} className="flex gap-2">
                             <input
@@ -307,22 +326,22 @@ export default function ForecastPage() {
                             <div className="flex flex-col md:flex-row md:items-center mb-4">
                                 <div className="flex-1 mb-4 md:mb-0">
                                     <div className="flex items-center">
-                                        <div className={`${getAQICategoryColorClass(forecastData.pollution.aqius)} w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4`}>
-                                            {forecastData.pollution.aqius}
+                                        <div className={`${getAQICategoryColorClass(forecastData.current.aqi)} w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4`}>
+                                            {forecastData.current.aqi}
                                         </div>
                                         <div>
                                             <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                                                {getAQICategory(forecastData.pollution.aqius)}
+                                                {getAQICategory(forecastData.current.aqi)}
                                             </p>
                                             <p className="text-gray-500 dark:text-gray-400">
-                                                Last updated: {new Date(forecastData.pollution.timestamp).toLocaleString()}
+                                                Last updated: {new Date(forecastData.current.timestamp).toLocaleString()}
                                             </p>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-gray-700 dark:text-gray-300">
-                                        <span className="font-medium">Main pollutant:</span> {getPollutantDisplayName(forecastData.pollution.mainus)}
+                                        <span className="font-medium">Main pollutant:</span> {getPollutantDisplayName(forecastData.current.mainPollutant)}
                                     </p>
                                 </div>
                             </div>
@@ -353,7 +372,6 @@ export default function ForecastPage() {
                                     <option value="o3">Ozone (O₃)</option>
                                     <option value="no2">Nitrogen Dioxide (NO₂)</option>
                                     <option value="so2">Sulfur Dioxide (SO₂)</option>
-                                    <option value="co">Carbon Monoxide (CO)</option>
                                 </select>
                             </div>
                             
@@ -377,22 +395,22 @@ export default function ForecastPage() {
                                 <thead>
                                     <tr className="bg-gray-100 dark:bg-gray-700">
                                         <th className="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Date</th>
+                                        <th className="px-4 py-2 text-left text-gray-800 dark:text-gray-200">AQI</th>
                                         <th className="px-4 py-2 text-left text-gray-800 dark:text-gray-200">PM2.5</th>
                                         <th className="px-4 py-2 text-left text-gray-800 dark:text-gray-200">PM10</th>
                                         <th className="px-4 py-2 text-left text-gray-800 dark:text-gray-200">O₃</th>
                                         <th className="px-4 py-2 text-left text-gray-800 dark:text-gray-200">NO₂</th>
-                                        <th className="px-4 py-2 text-left text-gray-800 dark:text-gray-200">SO₂</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {forecastData.forecast.map((day, index) => (
                                         <tr key={index} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-750'}>
                                             <td className="px-4 py-3 text-gray-800 dark:text-gray-200 font-medium">{formatDate(day.day)}</td>
-                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.pm2_5 || '-'}</td>
-                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.pm10 || '-'}</td>
-                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.o3 || '-'}</td>
-                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.no2 || '-'}</td>
-                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.so2 || '-'}</td>
+                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.aqi}</td>
+                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.pm2_5_avg || '-'}</td>
+                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.pm10_avg || '-'}</td>
+                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.o3_avg || '-'}</td>
+                                            <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{day.components.no2_avg || '-'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
