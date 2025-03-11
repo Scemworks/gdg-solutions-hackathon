@@ -384,7 +384,7 @@ export default function AQITrackingPage() {
                                 )}
                             </div>
 
-                            {/* Weather section - only display if weather data exists */}
+                            {/* Weather section - only display if the weather data exists */}
                             {aqiData.weather && (
                                 Object.keys(aqiData.weather).length > 0 ? (
                                     <>
