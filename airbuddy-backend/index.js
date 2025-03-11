@@ -32,45 +32,88 @@ app.get('/api/aqi', async (req, res) => {
       return res.status(500).json({ error: 'API key not configured' });
     }
     
-    // Request data from the WAQI API
-    const response = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${API_KEY}`);
+    // Request current data from the WAQI API
+    const currentResponse = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${API_KEY}`);
     
-    // Check if the response was successful
-    if (response.data.status !== 'ok') {
-      return res.status(400).json({ error: 'Unable to fetch AQI data' });
+    // Check if the current response was successful
+    if (currentResponse.data.status !== 'ok') {
+      return res.status(400).json({ error: 'Unable to fetch current AQI data' });
     }
     
-    const data = response.data.data;
-    
-    // Extract pollutant information
+    const currentData = currentResponse.data.data;
+
+    // Request forecast data from the WAQI API
+    let forecastData = null;
+    try {
+      const forecastResponse = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/forecast/?token=${API_KEY}`);
+      if (forecastResponse.data.status === 'ok') {
+        forecastData = forecastResponse.data.data;
+      }
+    } catch (error) {
+      console.error('WAQI Forecast API Error:', error.response?.data || error.message);
+    }
+
+    // Extract pollutant information from current data
     const components = {
-      co: data.iaqi.co?.v || 0,
-      no: data.iaqi.no?.v || 0,
-      no2: data.iaqi.no2?.v || 0,
-      o3: data.iaqi.o3?.v || 0,
-      so2: data.iaqi.so2?.v || 0,
-      pm2_5: data.iaqi.pm25?.v || 0,
-      pm10: data.iaqi.pm10?.v || 0,
-      nh3: data.iaqi.nh3?.v || 0
+      co: currentData.iaqi.co?.v || 0,
+      no: currentData.iaqi.no?.v || 0,
+      no2: currentData.iaqi.no2?.v || 0,
+      o3: currentData.iaqi.o3?.v || 0,
+      so2: currentData.iaqi.so2?.v || 0,
+      pm2_5: currentData.iaqi.pm25?.v || 0,
+      pm10: currentData.iaqi.pm10?.v || 0,
+      nh3: currentData.iaqi.nh3?.v || 0
     };
     
     // Determine the main pollutant
-    const mainPollutant = data.dominentpol || 'pm25';
+    const mainPollutant = currentData.dominentpol || 'pm25';
     
-    // Return AQI data with detailed pollutant information
+    // Process forecast data if available
+    const processForecast = (forecast) => {
+      const componentMapping = { pm25: 'pm2_5' };
+      const dailyForecast = [];
+      const pollutants = Object.keys(forecast.daily || {});
+      const days = new Set();
+      
+      pollutants.forEach(pollutant => {
+        (forecast.daily[pollutant] || []).forEach(entry => {
+          days.add(entry.day);
+        });
+      });
+      
+      Array.from(days).sort().forEach(day => {
+        const components = {};
+        pollutants.forEach(pollutant => {
+          const entry = (forecast.daily[pollutant] || []).find(e => e.day === day);
+          if (entry && entry.avg !== undefined) {
+            const key = componentMapping[pollutant] || pollutant;
+            components[key] = entry.avg;
+          }
+        });
+        
+        dailyForecast.push({
+          day: day,
+          components: components
+        });
+      });
+      
+      return dailyForecast;
+    };
+
+    // Build the final AQI data response
     const aqiData = {
       location: {
         lat: parseFloat(lat),
         lon: parseFloat(lon)
       },
       pollution: {
-        aqius: data.aqi,
+        aqius: currentData.aqi,
         mainus: mainPollutant,
-        aqicn: data.aqi,
-        timestamp: data.time?.iso || new Date().toISOString()
+        aqicn: currentData.aqi,
+        timestamp: currentData.time?.iso || new Date().toISOString()
       },
-      weather: {},
-      components: components
+      components: components,
+      forecast: forecastData?.forecast ? processForecast(forecastData.forecast) : []
     };
     
     res.json(aqiData);
