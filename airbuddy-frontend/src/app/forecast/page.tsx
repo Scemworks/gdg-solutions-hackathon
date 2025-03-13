@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ChartData } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
@@ -36,6 +36,8 @@ export default function ForecastPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [selectedPollutant, setSelectedPollutant] = useState<string>("pm25");
+    const [showTrendPrediction, setShowTrendPrediction] = useState<boolean>(false);
+    const [chartType, setChartType] = useState<'line' | 'bar'>('line');
 
     // Get pollutant name from code
     const getPollutantName = (code: string) => {
@@ -80,8 +82,45 @@ export default function ForecastPage() {
         return "Hazardous";
     };
 
+    // Calculate linear regression for trend prediction
+    const calculateTrendLine = (data: number[]): number[] => {
+        const n = data.length;
+        
+        // If there's not enough data, return the original
+        if (n <= 1) return data;
+        
+        let sumX = 0;
+        let sumY = 0;
+        let sumXY = 0;
+        let sumXX = 0;
+        
+        for (let i = 0; i < n; i++) {
+            sumX += i;
+            sumY += data[i];
+            sumXY += i * data[i];
+            sumXX += i * i;
+        }
+        
+        // Calculate slope and y-intercept
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const yIntercept = (sumY - slope * sumX) / n;
+        
+        // Generate trend line points
+        const trendLine = [];
+        for (let i = 0; i < n; i++) {
+            trendLine.push(slope * i + yIntercept);
+        }
+        
+        // Calculate future prediction points (extend for 2 more days)
+        for (let i = n; i < n + 2; i++) {
+            trendLine.push(slope * i + yIntercept);
+        }
+        
+        return trendLine;
+    };
+
     // Prepare chart data
-    const getChartData = (): ChartData<'line'> => {
+    const getChartData = (): ChartData<'line' | 'bar'> => {
         if (!forecastData || !forecastData.forecast || !forecastData.forecast[selectedPollutant]) {
             return {
                 labels: [],
@@ -91,6 +130,45 @@ export default function ForecastPage() {
         
         const pollutantData = forecastData.forecast[selectedPollutant]!;
         const labels = pollutantData.map(item => formatDate(item.day));
+        
+        // For trend prediction mode, add additional labels for future days
+        const extendedLabels = showTrendPrediction ? 
+            [
+                ...labels, 
+                `Day ${labels.length + 1}`, 
+                `Day ${labels.length + 2}`
+            ] : labels;
+        
+        if (showTrendPrediction) {
+            const avgData = pollutantData.map(item => item.avg);
+            const trendLine = calculateTrendLine(avgData);
+            
+            return {
+                labels: extendedLabels,
+                datasets: [
+                    {
+                        label: 'Actual Data',
+                        data: avgData,
+                        borderColor: getAQICategoryColor(pollutantData[0].avg),
+                        backgroundColor: `${getAQICategoryColor(pollutantData[0].avg)}33`,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Trend Prediction',
+                        data: trendLine,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderDash: [5, 5],
+                        tension: 0.1,
+                        borderWidth: 2,
+                        pointRadius: (ctx) => ctx.dataIndex >= avgData.length ? 4 : 0,
+                        pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    }
+                ]
+            };
+        }
         
         return {
             labels,
@@ -121,6 +199,39 @@ export default function ForecastPage() {
         };
     };
 
+    // Compare all pollutants data for the bar chart
+    const getPollutantsComparisonData = (): ChartData<'bar'> => {
+        if (!forecastData || !forecastData.forecast) {
+            return {
+                labels: [],
+                datasets: []
+            };
+        }
+        
+        const labels = ['PM2.5', 'PM10', 'Ozone', 'NO2', 'SO2'];
+        const pollutantCodes = ['pm25', 'pm10', 'o3', 'no2', 'so2'];
+        const avgValues = pollutantCodes.map(code => {
+            const data = forecastData.forecast[code];
+            if (!data || data.length === 0) return 0;
+            return data[0].avg; // Using the first day's average value
+        });
+
+        const colors = avgValues.map(val => getAQICategoryColor(val));
+        
+        return {
+            labels,
+            datasets: [
+                {
+                    label: 'Current AQI Values',
+                    data: avgValues,
+                    backgroundColor: colors,
+                    borderColor: colors.map(c => c.replace(')', ', 1)')),
+                    borderWidth: 1
+                }
+            ]
+        };
+    };
+
     // Chart options
     const chartOptions = {
         responsive: true,
@@ -130,7 +241,41 @@ export default function ForecastPage() {
             },
             title: {
                 display: true,
-                text: `${getPollutantName(selectedPollutant)} Forecast Trends`
+                text: showTrendPrediction 
+                    ? `${getPollutantName(selectedPollutant)} Trend Prediction` 
+                    : `${getPollutantName(selectedPollutant)} Forecast Trends`
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'AQI Value'
+                }
+            }
+        }
+    };
+
+    // Bar chart options
+    const barChartOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: 'Current Pollutant Comparison'
+            },
+            tooltip: {
+                callbacks: {
+                    afterLabel: function(context: any) {
+                        const index = context.dataIndex;
+                        const value = context.dataset.data[index];
+                        return `Status: ${getAQICategory(value)}`;
+                    }
+                }
             }
         },
         scales: {
@@ -324,14 +469,47 @@ export default function ForecastPage() {
                                     </select>
                                 </div>
 
+                                {/* Visualization controls */}
+                                <div className="flex flex-wrap gap-4 mb-6">
+                                    <div>
+                                        <label className="inline-flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                className="form-checkbox h-5 w-5 text-blue-600"
+                                                checked={showTrendPrediction}
+                                                onChange={() => setShowTrendPrediction(!showTrendPrediction)}
+                                            />
+                                            <span className="ml-2 text-gray-700 dark:text-gray-300">Show Trend Prediction</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="inline-flex items-center">
+                                            <span className="mr-2 text-gray-700 dark:text-gray-300">Chart Type:</span>
+                                            <select 
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                value={chartType}
+                                                onChange={(e) => setChartType(e.target.value as 'line' | 'bar')}
+                                            >
+                                                <option value="line">Line Chart</option>
+                                                <option value="bar">Bar Chart</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 {/* Chart visualization */}
                                 {forecastData?.forecast && forecastData.forecast[selectedPollutant] && (
                                     <div className="mb-8 bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
                                         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
-                                            {getPollutantName(selectedPollutant)} Trend
+                                            {getPollutantName(selectedPollutant)} {showTrendPrediction ? "Trend Forecast" : "Trend"}
                                         </h3>
                                         <div className="h-64 md:h-80">
-                                            <Line data={getChartData()} options={chartOptions} />
+                                            {chartType === 'line' ? (
+                                                <Line data={getChartData() as ChartData<'line'>} options={chartOptions} />
+                                            ) : (
+                                                <Bar data={getChartData() as ChartData<'bar'>} options={chartOptions} />
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -368,6 +546,16 @@ export default function ForecastPage() {
                                         No forecast data available for {getPollutantName(selectedPollutant)}
                                     </p>
                                 )}
+
+                                {/* Pollutant comparison chart - NEW */}
+                                <div className="mt-8 mb-6 bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                    <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+                                        Current Pollutant Comparison
+                                    </h3>
+                                    <div className="h-64 md:h-80">
+                                        <Bar data={getPollutantsComparisonData()} options={barChartOptions} />
+                                    </div>
+                                </div>
 
                                 <div className="mt-6 bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
                                     <h3 className="text-md font-medium text-gray-800 dark:text-gray-200 mb-2">
