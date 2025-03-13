@@ -16,7 +16,7 @@ app.get('/', (_, res) => {
   res.send('Server is running');
 });
 
-// AQI API endpoint using WAQI API
+// Current AQI API endpoint using WAQI API
 app.get('/api/aqi', async (req, res) => {
   try {
     const { lat, lon } = req.query;
@@ -94,6 +94,65 @@ app.get('/api/aqi', async (req, res) => {
   }
 });
 
+// New endpoint: Forecast API route for 5 future days using WAQI API
+app.get('/api/aqi/forecast', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    
+    if (!lat || !lon) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+    
+    // Get WAQI API key from .env file
+    const API_KEY = process.env.AQI_API_KEY;
+    
+    if (!API_KEY) {
+      return res.status(500).json({ error: 'API key not configured' });
+    }
+    
+    // Request data from the WAQI API
+    const response = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${API_KEY}`);
+    
+    if (response.data.status !== 'ok') {
+      return res.status(400).json({ error: 'Unable to fetch AQI forecast data' });
+    }
+    
+    const data = response.data.data;
+    const forecastData = data.forecast;
+    
+    if (!forecastData || !forecastData.daily) {
+      return res.status(404).json({ error: 'Forecast data not available for this location' });
+    }
+    
+    const dailyForecast = forecastData.daily;
+    // Process forecast data for each pollutant: slice to return only the next 5 days
+    const forecastFor5Days = {};
+    Object.keys(dailyForecast).forEach(pollutant => {
+      const forecastArray = dailyForecast[pollutant];
+      forecastFor5Days[pollutant] = forecastArray.slice(0, 5);
+    });
+    
+    res.json({
+      location: data.city ? data.city.name : 'Unknown',
+      forecast: forecastFor5Days
+    });
+  } catch (error) {
+    console.error('WAQI Forecast API Error:', error.response?.data || error.message);
+    
+    // Handle different error scenarios
+    if (error.response) {
+      const status = error.response.status || 500;
+      const errorMessage = error.response.data?.data || error.response.data?.message || 'API server error';
+      res.status(status).json({ error: errorMessage });
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+      res.status(503).json({ error: 'Unable to connect to AQI service' });
+    } else {
+      res.status(500).json({ error: `Request error: ${error.message}` });
+    }
+  }
+});
+
 app.get('/api/geocode', async (req, res) => {
   try {
     const { location } = req.query;
@@ -129,16 +188,13 @@ app.get('/api/geocode', async (req, res) => {
     
     // Handle different error scenarios
     if (error.response) {
-      // The request was made and the server responded with a status code outside of 2xx
       const status = error.response.status || 500;
       const errorMessage = error.response.data?.error || 'Geocoding service error';
       res.status(status).json({ error: errorMessage });
     } else if (error.request) {
-      // The request was made but no response was received
       console.error('No response received:', error.request);
       res.status(503).json({ error: 'Unable to connect to geocoding service' });
     } else {
-      // Something happened in setting up the request
       res.status(500).json({ error: `Request error: ${error.message}` });
     }
   }
