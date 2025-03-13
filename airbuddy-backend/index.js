@@ -32,25 +32,22 @@ app.get('/api/aqi', async (req, res) => {
       return res.status(500).json({ error: 'API key not configured' });
     }
     
-    // Request current data (still needed for location and basic info)
-    const currentResponse = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${API_KEY}`);
+    // Request data (includes both current and forecast data)
+    const response = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${API_KEY}`);
     
-    // Check if the current response was successful
-    if (currentResponse.data.status !== 'ok') {
+    // Check if the response was successful
+    if (response.data.status !== 'ok') {
       return res.status(400).json({ error: 'Unable to fetch AQI data' });
     }
     
-    const currentData = currentResponse.data.data;
-
-    // Fetch forecast data separately
-    const forecastResponse = await axios.get(`https://api.waqi.info/forecast/geo:${lat};${lon}/?token=${API_KEY}`);
+    const currentData = response.data.data;
     
-    // Check if the forecast response was successful
-    if (forecastResponse.data.status !== 'ok') {
-      return res.status(400).json({ error: 'Unable to fetch forecast data' });
+    // Check if forecast data is available
+    if (!currentData.forecast) {
+      return res.status(400).json({ error: 'Forecast data not available for this location' });
     }
     
-    const forecastData = forecastResponse.data.data;
+    const forecastData = { forecast: currentData.forecast };
 
     // Extract current pollutant information
     const components = {
@@ -145,11 +142,11 @@ app.get('/api/aqi', async (req, res) => {
     res.json(aqiData);
   } catch (error) {
     console.error('WAQI API Error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to fetch forecast data' });
+    const errorMessage = error.response?.data?.data || 'Failed to fetch AQI data';
+    res.status(500).json({ error: errorMessage });
   }
 });
 
-// Geocoding API endpoint
 app.get('/api/geocode', async (req, res) => {
   try {
     const { location } = req.query;
