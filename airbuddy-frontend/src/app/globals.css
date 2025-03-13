@@ -1,23 +1,21 @@
 @import "tailwindcss";
 
+/* Fix for footer covering content */
 :root {
-    --footer-height: 60px; /* Adjust this value based on your footer's height */
-}
-
-html, body {
-    height: 100%;
+  --footer-height: 80px;
 }
 
 body {
-    min-height: 100vh;
+  padding-bottom: var(--footer-height);
 }
 
 main {
-    flex: 1 0 auto;
-    padding-bottom: var(--footer-height);
+  min-height: calc(100vh - var(--footer-height));
 }
 
-footer {
-    height: var(--footer-height);
-    flex-shrink: 0;
+@media (max-width: 768px) {
+  :root {
+	--footer-height: 80px;
+  }
 }
+
