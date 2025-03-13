@@ -120,8 +120,21 @@ app.get('/api/aqi', async (req, res) => {
     res.json(aqiData);
   } catch (error) {
     console.error('WAQI API Error:', error.response?.data || error.message);
-    const errorMessage = error.response?.data?.data || 'Failed to fetch AQI data';
-    res.status(500).json({ error: errorMessage });
+    
+    // Handle different error scenarios
+    if (error.response) {
+      // The request was made and the server responded with a status code outside of 2xx
+      const status = error.response.status || 500;
+      const errorMessage = error.response.data?.data || error.response.data?.message || 'API server error';
+      res.status(status).json({ error: errorMessage });
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+      res.status(503).json({ error: 'Unable to connect to AQI service' });
+    } else {
+      // Something happened in setting up the request
+      res.status(500).json({ error: `Request error: ${error.message}` });
+    }
   }
 });
 
@@ -148,10 +161,6 @@ app.get('/api/geocode', async (req, res) => {
       }
     });
     
-    if (!response.data || response.data.length === 0) {
-      return res.status(404).json({ error: 'Location not found' });
-    }
-    
     const result = response.data[0];
     res.json({
       lat: result.lat,
@@ -160,8 +169,22 @@ app.get('/api/geocode', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Geocoding API Error:', error);
-    res.status(500).json({ error: 'Failed to geocode location' });
+    console.error('Geocoding API Error:', error.response?.data || error.message);
+    
+    // Handle different error scenarios
+    if (error.response) {
+      // The request was made and the server responded with a status code outside of 2xx
+      const status = error.response.status || 500;
+      const errorMessage = error.response.data?.error || 'Geocoding service error';
+      res.status(status).json({ error: errorMessage });
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+      res.status(503).json({ error: 'Unable to connect to geocoding service' });
+    } else {
+      // Something happened in setting up the request
+      res.status(500).json({ error: `Request error: ${error.message}` });
+    }
   }
 });
 
