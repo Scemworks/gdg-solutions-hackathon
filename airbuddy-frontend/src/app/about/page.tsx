@@ -83,7 +83,7 @@ export default function AboutPage() {
                             <p className="text-gray-600 dark:text-gray-300 mb-3">
                                 This project was developed for the GDG Solutions Hackathon, where our team tackled environmental 
                                 challenges through technology. AirBuddy represents our commitment to creating solutions that 
-                                positively impact people's health and quality of life.
+                                positively impact people&apos;s health and quality of life.
                             </p>
                             <p className="text-gray-600 dark:text-gray-300">
                                 Our solution addresses key UN Sustainable Development Goals, including SDG 3 (Good Health and Well-being), 

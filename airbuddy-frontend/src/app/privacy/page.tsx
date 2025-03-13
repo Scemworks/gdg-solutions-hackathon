@@ -30,7 +30,7 @@ export default function PrivacyPage() {
                         <h2 className="text-xl font-semibold text-blue-700 dark:text-blue-300 mb-3">3. Data Storage and Security</h2>
                         <p className="text-gray-600 dark:text-gray-300 mb-3">
                             Location data is transmitted securely using encryption. We cache AQI data temporarily to improve
-                            performance but do not permanently store your search history on our servers unless you've enabled
+                            performance but do not permanently store your search history on our servers unless you&apos;ve enabled
                             this feature in your account settings.
                         </p>
                     </section>
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
                         <h2 className="text-xl font-semibold text-blue-700 dark:text-blue-300 mb-3">4. Third-party Services</h2>
                         <p className="text-gray-600 dark:text-gray-300 mb-3">
                             We use the World Air Quality Index (WAQI) API to provide AQI data. When you search for a location,
-                            that search is forwarded to the WAQI service. Please refer to WAQI's privacy policy for information
+                            that search is forwarded to the WAQI service. Please refer to WAQI&apos;s privacy policy for information
                             on how they process this data. We may also use analytics services to improve our site.
                         </p>
                     </section>

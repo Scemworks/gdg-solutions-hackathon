@@ -20,7 +20,7 @@ export default function TermsPage() {
                             <h2 className="text-xl font-semibold text-blue-700 dark:text-blue-300 mb-3">2. Description of Service</h2>
                             <p className="text-gray-600 dark:text-gray-300 mb-3">
                                 AirBuddy provides air quality information based on data from third-party sources. The service is provided 
-                                "as is" and we make no warranties regarding the accuracy, completeness, or reliability of the data.
+                                &quot;as is&quot; and we make no warranties regarding the accuracy, completeness, or reliability of the data.
                             </p>
                         </section>
                         
