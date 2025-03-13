@@ -42,17 +42,6 @@ app.get('/api/aqi', async (req, res) => {
     
     const currentData = currentResponse.data.data;
 
-    // Request forecast data from the WAQI API
-    let forecastData = null;
-    try {
-      const forecastResponse = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/forecast/?token=${API_KEY}`);
-      if (forecastResponse.data.status === 'ok') {
-        forecastData = forecastResponse.data.data;
-      }
-    } catch (error) {
-      console.error('WAQI Forecast API Error:', error.response?.data || error.message);
-    }
-
     // Extract pollutant information from current data
     const components = {
       co: currentData.iaqi?.co?.v || 0,
@@ -68,38 +57,6 @@ app.get('/api/aqi', async (req, res) => {
     // Determine the main pollutant
     const mainPollutant = currentData.dominentpol || 'pm25';
     
-    // Process forecast data if available
-    const processForecast = (forecast) => {
-      const componentMapping = { pm25: 'pm2_5' };
-      const dailyForecast = [];
-      const pollutants = Object.keys(forecast.daily || {});
-      const days = new Set();
-      
-      pollutants.forEach(pollutant => {
-        (forecast.daily[pollutant] || []).forEach(entry => {
-          days.add(entry.day);
-        });
-      });
-      
-      Array.from(days).sort().forEach(day => {
-        const components = {};
-        pollutants.forEach(pollutant => {
-          const entry = (forecast.daily[pollutant] || []).find(e => e.day === day);
-          if (entry && entry.avg !== undefined) {
-            const key = componentMapping[pollutant] || pollutant;
-            components[key] = entry.avg;
-          }
-        });
-        
-        dailyForecast.push({
-          day: day,
-          components: components
-        });
-      });
-      
-      return dailyForecast;
-    };
-
     // Build the final AQI data response
     const aqiData = {
       location: {
@@ -113,8 +70,7 @@ app.get('/api/aqi', async (req, res) => {
         aqicn: currentData.aqi,
         timestamp: currentData.time?.iso || new Date().toISOString()
       },
-      components: components,
-      forecast: forecastData?.forecast ? processForecast(forecastData.forecast) : []
+      components: components
     };
     
     res.json(aqiData);
