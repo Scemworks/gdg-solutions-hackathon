@@ -42,9 +42,10 @@ app.get('/api/aqi', async (req, res) => {
     
     const currentData = currentResponse.data.data;
 
-    // Request detailed forecast data from the WAQI API
-    const forecastResponse = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/forecast/?token=${API_KEY}`);
+    // Fetch forecast data separately
+    const forecastResponse = await axios.get(`https://api.waqi.info/forecast/geo:${lat};${lon}/?token=${API_KEY}`);
     
+    // Check if the forecast response was successful
     if (forecastResponse.data.status !== 'ok') {
       return res.status(400).json({ error: 'Unable to fetch forecast data' });
     }
