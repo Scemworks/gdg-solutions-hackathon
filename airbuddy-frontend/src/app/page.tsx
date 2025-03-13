@@ -68,7 +68,6 @@ export default function Home() {
                 { title: "Health Alerts", desc: "Receive personalized notifications based on air quality", href: "/health-alerts" },
                 { title: "Pollution Map", desc: "View interactive pollution distribution in your region", href: "/pollution-map" },
                 { title: "Safety Tips", desc: "Learn how to protect yourself on high pollution days", href: "/safety-tips" },
-                { title: "Pollution Forecast", desc: "See predicted air quality trends for the upcoming days", href: "/forecast" },
                 { title: "Community Reports", desc: "Connect with others and share local air quality observations", href: "/community" }
               ].map((item, index) => (
                 <a key={index} href={item.href} className="bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg p-5 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all">
