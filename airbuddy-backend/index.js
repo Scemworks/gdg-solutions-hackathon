@@ -36,7 +36,7 @@ app.get('/api/aqi', async (req, res) => {
     const currentResponse = await axios.get(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${API_KEY}`);
     
     // Check if the response was successful
-    if (response.data.status !== 'ok') {
+    if (currentResponse.data.status !== 'ok') {
       return res.status(400).json({ error: 'Unable to fetch AQI data' });
     }
     
@@ -55,18 +55,18 @@ app.get('/api/aqi', async (req, res) => {
 
     // Extract pollutant information from current data
     const components = {
-      co: data.iaqi.co?.v || 0,
-      no: data.iaqi.no?.v || 0,
-      no2: data.iaqi.no2?.v || 0,
-      o3: data.iaqi.o3?.v || 0,
-      so2: data.iaqi.so2?.v || 0,
-      pm2_5: data.iaqi.pm25?.v || 0,
-      pm10: data.iaqi.pm10?.v || 0,
-      nh3: data.iaqi.nh3?.v || 0
+      co: currentData.iaqi?.co?.v || 0,
+      no: currentData.iaqi?.no?.v || 0,
+      no2: currentData.iaqi?.no2?.v || 0,
+      o3: currentData.iaqi?.o3?.v || 0,
+      so2: currentData.iaqi?.so2?.v || 0,
+      pm2_5: currentData.iaqi?.pm25?.v || 0,
+      pm10: currentData.iaqi?.pm10?.v || 0,
+      nh3: currentData.iaqi?.nh3?.v || 0
     };
     
     // Determine the main pollutant
-    const mainPollutant = data.dominentpol || 'pm25';
+    const mainPollutant = currentData.dominentpol || 'pm25';
     
     // Process forecast data if available
     const processForecast = (forecast) => {
