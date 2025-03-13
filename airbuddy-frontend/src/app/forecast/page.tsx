@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ChartData } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 interface ForecastItem {
     avg: number;
@@ -56,6 +60,16 @@ export default function ForecastPage() {
         return "bg-pink-800";
     };
 
+    // Function to get AQI category color for chart
+    const getAQICategoryColor = (aqi: number) => {
+        if (aqi <= 50) return "rgb(34, 197, 94)";
+        if (aqi <= 100) return "rgb(234, 179, 8)";
+        if (aqi <= 150) return "rgb(249, 115, 22)";
+        if (aqi <= 200) return "rgb(239, 68, 68)";
+        if (aqi <= 300) return "rgb(168, 85, 247)";
+        return "rgb(157, 23, 77)";
+    };
+
     // Function to get AQI category name
     const getAQICategory = (aqi: number) => {
         if (aqi <= 50) return "Good";
@@ -64,6 +78,70 @@ export default function ForecastPage() {
         if (aqi <= 200) return "Unhealthy";
         if (aqi <= 300) return "Very Unhealthy";
         return "Hazardous";
+    };
+
+    // Prepare chart data
+    const getChartData = (): ChartData<'line'> => {
+        if (!forecastData || !forecastData.forecast || !forecastData.forecast[selectedPollutant]) {
+            return {
+                labels: [],
+                datasets: []
+            };
+        }
+        
+        const pollutantData = forecastData.forecast[selectedPollutant]!;
+        const labels = pollutantData.map(item => formatDate(item.day));
+        
+        return {
+            labels,
+            datasets: [
+                {
+                    label: 'Min',
+                    data: pollutantData.map(item => item.min),
+                    borderColor: 'rgba(53, 162, 235, 0.8)',
+                    backgroundColor: 'rgba(53, 162, 235, 0.2)',
+                    tension: 0.3,
+                },
+                {
+                    label: 'Average',
+                    data: pollutantData.map(item => item.avg),
+                    borderColor: getAQICategoryColor(pollutantData[0].avg),
+                    backgroundColor: `${getAQICategoryColor(pollutantData[0].avg)}33`,
+                    tension: 0.3,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Max',
+                    data: pollutantData.map(item => item.max),
+                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.3,
+                }
+            ]
+        };
+    };
+
+    // Chart options
+    const chartOptions = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: `${getPollutantName(selectedPollutant)} Forecast Trends`
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'AQI Value'
+                }
+            }
+        }
     };
 
     // Function to fetch data based on location name
@@ -238,7 +316,7 @@ export default function ForecastPage() {
                                         value={selectedPollutant}
                                         onChange={(e) => setSelectedPollutant(e.target.value)}
                                     >
-                                        {forecastData.forecast && Object.keys(forecastData.forecast).map((pollutant) => (
+                                        {forecastData?.forecast && Object.keys(forecastData.forecast).map((pollutant) => (
                                             <option key={pollutant} value={pollutant}>
                                                 {getPollutantName(pollutant)}
                                             </option>
@@ -246,10 +324,22 @@ export default function ForecastPage() {
                                     </select>
                                 </div>
 
+                                {/* Chart visualization */}
+                                {forecastData?.forecast && forecastData.forecast[selectedPollutant] && (
+                                    <div className="mb-8 bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">
+                                            {getPollutantName(selectedPollutant)} Trend
+                                        </h3>
+                                        <div className="h-64 md:h-80">
+                                            <Line data={getChartData()} options={chartOptions} />
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Forecast cards */}
-                                {forecastData.forecast && forecastData.forecast[selectedPollutant] ? (
+                                {forecastData?.forecast && forecastData.forecast[selectedPollutant] ? (
                                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                        {forecastData.forecast[selectedPollutant]?.map((day, index) => (
+                                        {forecastData?.forecast[selectedPollutant]?.map((day, index) => (
                                             <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                                                 <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
                                                     {formatDate(day.day)}
