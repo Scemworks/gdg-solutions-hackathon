@@ -55,16 +55,6 @@ export default function ForecastPage() {
         return "bg-pink-800";
     };
 
-    // Function to get AQI category color for display
-    const getAQICategoryColor = (aqi: number) => {
-        if (aqi <= 50) return "rgb(34, 197, 94)";
-        if (aqi <= 100) return "rgb(234, 179, 8)";
-        if (aqi <= 150) return "rgb(249, 115, 22)";
-        if (aqi <= 200) return "rgb(239, 68, 68)";
-        if (aqi <= 300) return "rgb(168, 85, 247)";
-        return "rgb(157, 23, 77)";
-    };
-
     // Function to get AQI category name
     const getAQICategory = (aqi: number) => {
         if (aqi <= 50) return "Good";
