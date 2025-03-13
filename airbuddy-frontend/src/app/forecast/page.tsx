@@ -103,11 +103,11 @@ export default function ForecastPage() {
 
     // Function to get formatted date
     const formatDate = (dateString: string) => {
-        const options: Intl.DateTimeFormatOptions = { 
-            weekday: 'short', 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
+        const options: Intl.DateTimeFormatOptions = {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
         };
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
@@ -168,62 +168,93 @@ export default function ForecastPage() {
 
     // Initial data fetch - using user's current position
     useEffect(() => {
+        let isMounted = true;
+
         const getCurrentLocationData = async () => {
+            if (!isMounted) return;
             setIsLoading(true);
 
             try {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        async (position) => {
-                            const { latitude, longitude } = position.coords;
+                // Check if we're in a browser environment and geolocation is available
+                if (typeof window !== 'undefined' && navigator.geolocation) {
+                    const geolocationPromise = new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 10000,
+                            maximumAge: 60000,
+                            enableHighAccuracy: false
+                        });
+                    });
 
+                    try {
+                        const position = await geolocationPromise;
+
+                        if (!isMounted) return;
+
+                        const { latitude, longitude } = position.coords;
+
+                        try {
+                            const aqiResponse = await fetch(`https://airbuddy-backend.vercel.app/api/aqi?lat=${latitude}&lon=${longitude}`);
+                            if (!isMounted) return;
+
+                            const aqiResponseData = await aqiResponse.json();
+
+                            if (!aqiResponse.ok) {
+                                throw new Error(aqiResponseData.error || "Failed to fetch AQI data");
+                            }
+
+                            if (isMounted) setForecastData(aqiResponseData);
+
+                            // Try to get location name from reverse geocoding
                             try {
-                                const aqiResponse = await fetch(`https://airbuddy-backend.vercel.app/api/aqi?lat=${latitude}&lon=${longitude}`);
-                                const aqiResponseData = await aqiResponse.json();
+                                const geocodeResponse = await fetch(`https://airbuddy-backend.vercel.app/api/geocode?location=${latitude},${longitude}`);
+                                if (!isMounted) return;
 
-                                if (!aqiResponse.ok) {
-                                    throw new Error(aqiResponseData.error || "Failed to fetch AQI data");
-                                }
-
-                                setForecastData(aqiResponseData);
-                                
-                                // Try to get location name from reverse geocoding
-                                try {
-                                    const geocodeResponse = await fetch(`https://airbuddy-backend.vercel.app/api/geocode?location=${latitude},${longitude}`);
-                                    const geocodeData = await geocodeResponse.json();
-                                    if (geocodeResponse.ok) {
-                                        setLocation(geocodeData.display_name);
-                                    } else {
-                                        setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-                                    }
-                                } catch {
+                                const geocodeData = await geocodeResponse.json();
+                                if (geocodeResponse.ok && isMounted) {
+                                    setLocation(geocodeData.display_name);
+                                } else if (isMounted) {
                                     setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                                 }
-                            } catch (error) {
-                                console.error("Error fetching AQI data:", error);
-                                setErrorMessage(error instanceof Error ? error.message : "Failed to fetch AQI data");
-                            } finally {
-                                setIsLoading(false);
+                            } catch {
+                                if (isMounted) {
+                                    setLocation(`Location at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                                }
                             }
-                        },
-                        (error) => {
-                            console.error("Geolocation error:", error);
-                            // Fallback to default location
-                            fetchDataByLocationName("New York");
+                        } catch (error) {
+                            console.error("Error fetching AQI data:", error);
+                            if (isMounted) {
+                                setErrorMessage(error instanceof Error ? error.message : "Failed to fetch AQI data");
+                                // Fallback to default location if AQI fetch fails
+                                fetchDataByLocationName("Government Engineering College Palakkad, Kerala, India");
+                            }
                         }
-                    );
+                    } catch (error) {
+                        console.error("Error getting current position:", error);
+                        if (isMounted) {
+                            setErrorMessage(error instanceof Error ? error.message : "Failed to get current position");
+                            // Fallback to default location if geolocation fails
+                            fetchDataByLocationName("Government Engineering College Palakkad, Kerala, India");
+                        }
+                    }
                 } else {
-                    // Browser doesn't support geolocation
-                    fetchDataByLocationName("New York");
+                    // Fallback to default location if geolocation is not available
+                    fetchDataByLocationName("Government Engineering College Palakkad, Kerala, India");
                 }
             } catch (error) {
-                console.error("Error:", error);
-                setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
-                setIsLoading(false);
+                console.error("Error in getCurrentLocationData:", error);
+                if (isMounted) {
+                    setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
+                }
+            } finally {
+                if (isMounted) setIsLoading(false);
             }
         };
 
         getCurrentLocationData();
+
+        return () => {
+            isMounted = false;
+        };
     }, [fetchDataByLocationName]);
 
     // Prepare chart data if forecast data is available
@@ -233,13 +264,13 @@ export default function ForecastPage() {
         }
 
         const labels = forecastData.forecast.map(day => formatDate(day.day));
-        
+
         // Select appropriate value based on the pollutant and availability
         const datapoints = forecastData.forecast.map(day => {
             const avgKey = `${selectedPollutant}_avg`;
             const maxKey = `${selectedPollutant}_max`;
             const minKey = `${selectedPollutant}_min`;
-            
+
             // Prefer average, fallback to max or min
             return day.components[avgKey] ?? day.components[maxKey] ?? day.components[minKey] ?? 0;
         });
@@ -356,7 +387,7 @@ export default function ForecastPage() {
                     {!isLoading && forecastData && forecastData.forecast && forecastData.forecast.length > 0 ? (
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
                             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Pollution Forecast</h2>
-                            
+
                             <div className="mb-4">
                                 <label htmlFor="pollutant-select" className="block text-gray-700 dark:text-gray-300 mb-2">
                                     Select Pollutant:
@@ -374,7 +405,7 @@ export default function ForecastPage() {
                                     <option value="so2">Sulfur Dioxide (SO₂)</option>
                                 </select>
                             </div>
-                            
+
                             <div className="h-64 md:h-80">
                                 {chartData ? (
                                     <Line options={chartOptions} data={chartData} />
@@ -417,7 +448,7 @@ export default function ForecastPage() {
                             </table>
                         </div>
                     ) : null}
-                    
+
                     {/* Information Card */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
                         <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Understanding Air Quality Forecasts</h2>
