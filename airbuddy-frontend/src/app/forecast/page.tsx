@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ChartData } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ChartData, TooltipItem } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 
 // Register Chart.js components
@@ -270,10 +270,10 @@ export default function ForecastPage() {
             },
             tooltip: {
                 callbacks: {
-                    afterLabel: function(context: any) {
+                    afterLabel: function(context: TooltipItem<'bar'>) {
                         const index = context.dataIndex;
                         const value = context.dataset.data[index];
-                        return `Status: ${getAQICategory(value)}`;
+                        return `Status: ${getAQICategory(value as number)}`;
                     }
                 }
             }
