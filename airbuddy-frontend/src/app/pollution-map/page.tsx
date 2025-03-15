@@ -200,7 +200,7 @@ export default function PollutionMap() {
       try {
         // Fetch cities data from your API endpoint.
         // This endpoint should return an array of objects with { lat, lon, name } for every main city of every state across 198 countries (including Kerala).
-        const citiesResponse = await fetch('/api/cities');
+        const citiesResponse = await fetch('https://airbuddy-backend.vercel.app/api/cities');
         if (!citiesResponse.ok) throw new Error('Failed to fetch cities data');
         const citiesData: Location[] = await citiesResponse.json();
 
