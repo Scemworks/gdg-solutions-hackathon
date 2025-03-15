@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+const L = typeof window !== 'undefined' ? require('leaflet') : null;
 
 // Define interfaces for type safety
 interface Location {
@@ -64,6 +64,7 @@ function useMapClick(callback: (lat: number, lon: number) => void) {
 
 // Fix Leaflet icon issues
 const CustomMarker = ({ position, color, children }: CustomMarkerProps) => {
+    if (!L) return null;
     const icon = L.divIcon({
         className: 'custom-marker',
         html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px rgba(0,0,0,0.2);"></div>`,
