@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useRouter } from 'next/navigation';
 
 // Define interfaces for type safety
 interface Location {
@@ -98,12 +97,10 @@ export default function PollutionMap() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-    const [selectedPoint, setSelectedPoint] = useState<AQIData | null>(null);
     const [forecastData, setForecastData] = useState<ForecastData | null>(null);
     const [showForecast, setShowForecast] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const mapRef = useRef(null);
-    const router = useRouter();
     
     // Sample locations to show AQI data for
     const sampleLocations = [
@@ -150,9 +147,6 @@ export default function PollutionMap() {
             const response = await fetch(`https://airbuddy-backend.vercel.app/api/aqi/point?lat=${lat}&lon=${lon}`);
             
             if (!response.ok) throw new Error('Failed to fetch point data');
-            
-            const data = await response.json();
-            setSelectedPoint(data);
             
             // Fetch forecast for this point
             fetchForecast(lat, lon);
@@ -209,7 +203,7 @@ export default function PollutionMap() {
             setLoading(true);
             
             try {
-                let locationsToQuery = [...sampleLocations];
+                const locationsToQuery = [...sampleLocations];
                 
                 // Get user's location if available
                 if (navigator.geolocation) {
@@ -244,7 +238,7 @@ export default function PollutionMap() {
         };
 
         fetchAllData();
-    }, [fetchAQIMapData]);
+    }, [fetchAQIMapData, sampleLocations]);
 
     // Render forecast data if available
     const renderForecast = () => {
@@ -409,7 +403,7 @@ export default function PollutionMap() {
                                 { aqi: 250, label: "Very Unhealthy" },
                                 { aqi: 350, label: "Hazardous" }
                             ].map((item, index) => {
-                                const { color, textColor } = getAQIInfo(item.aqi);
+                                const { color } = getAQIInfo(item.aqi);
                                 return (
                                     <div key={index} className="flex items-center">
                                         <div 
