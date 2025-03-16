@@ -208,5 +208,9 @@ app.get('/api/env-check', (_, res) => {
   });
 });
 
+app.listen(process.env.PORT || 3000, () => {
+  console.log('Server is running on port 3000');
+});
+
 // Export the Express API
 export default app;
