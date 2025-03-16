@@ -19,7 +19,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "build": "npm ci"
+    "build": "yarn install --frozen-lockfile"
   },
   "engines": {
     "node": ">=14.0.0"
