@@ -63,8 +63,6 @@ export default function Header() {
                         <Link href="/forecast" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/forecast' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Forecast</Link>
                         <Link href="/health-alerts" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/health-alerts' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Alerts</Link>
                         <Link href="/safety-tips" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/safety-tips' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Tips</Link>
-                        <Link href="/community" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/community' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Community</Link>
-                        <Link href="/login" className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-200 dark:bg-blue-800 px-3 py-1 rounded ${pathname === '/login' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>{pathname === '/signup' ? 'Signup' : 'Login'}</Link>
                     </nav>
                 </div>
                 
@@ -90,7 +88,7 @@ export default function Header() {
             {isMenuOpen && (
                 <div
                     ref={menuRef}
-                    className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray-900 shadow-md dark:shadow-gray-800/30 z-50 border-t border-gray-100 dark:border-gray-700"
+                    className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray- shadow-md dark:shadow-gray-800/30 z-50 border-t border-gray-100 dark:border-gray-700"
                 >
                     <div className="container mx-auto px-4">
                         <nav className="py-3 space-y-3">
@@ -99,8 +97,6 @@ export default function Header() {
                             <Link href="/forecast" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/forecast' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Forecast</Link>
                             <Link href="/health-alerts" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/health-alerts' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Alerts</Link>
                             <Link href="/safety-tips" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/safety-tips' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Tips</Link>
-                            <Link href="/community" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 ${pathname === '/community' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>Community</Link>
-                            <Link href="/login" className={`block text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-200 dark:bg-blue-800 px-4 py-2 rounded text-center my-2 font-medium ${pathname === '/login' ? 'text-blue-600 dark:text-blue-400 font-semibold underline' : ''}`}>{pathname === '/signup' ? 'Signup' : 'Login'}</Link>
                         </nav>
                     </div>
                 </div>
