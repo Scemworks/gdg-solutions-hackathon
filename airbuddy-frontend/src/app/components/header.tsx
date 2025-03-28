@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Header() {
     const pathname = usePathname();
@@ -50,10 +51,13 @@ export default function Header() {
         <header className="fixed top-0 left-0 w-full bg-white dark:bg-gray-900 shadow-md dark:shadow-gray-800/30 z-50">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 <div className="flex items-center">
-                    <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-400 ml-2">AirBuddy</h1>
+                    <Image
+                        src="/favicon.ico" 
+                        alt="AirBuddy Logo" 
+                        width={64} 
+                        height={64} 
+                        className="mr-2"
+                    />
                 </div>
                 
                 <div className="hidden md:flex items-center">
