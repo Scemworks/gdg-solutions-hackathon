@@ -18,10 +18,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AirBuddy",
   description: "Your personal air quality companion",
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico'
-  }
 };
 
 export default function RootLayout({
